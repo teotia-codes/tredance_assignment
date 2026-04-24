@@ -55,38 +55,36 @@ The network was trained for **40 epochs** on CIFAR-10 with a **5-epoch warmup** 
 
 | Lambda (λ) | Test Accuracy (%) | Sparsity Level (%) |
 |---|---|---|
-| `1e-6` | ~52.4% | ~18.3% |
-| `3e-6` | ~50.8% | ~41.7% |
-| `1e-5` | ~46.1% | ~72.5% |
-
-> **Note:** Exact values will vary by run due to stochastic training. The trend — higher λ → higher sparsity, lower accuracy — is consistent and expected.
+| `1e-6` | 60.00% | 68.91% |
+| `3e-6` | 59.15% | 87.95% |
+| `1e-5` | 56.53% | 97.27% |
 
 ### Observations
 
-- **Low λ = 1e-6:** Minimal pruning pressure. The network retains most weights and achieves the best accuracy, but sparsity is modest. Gates cluster around mid-range values.
-- **Medium λ = 3e-6:** A balanced trade-off. A significant fraction of gates are driven to near-zero while accuracy degrades only moderately. This is typically the "sweet spot" regime.
-- **High λ = 1e-5:** Aggressive pruning. Over 70% of gates are effectively zeroed out. The network becomes very sparse but loses meaningful accuracy — the pruning pressure overwhelms the classification signal.
+- **Low λ = 1e-6:** Minimal pruning pressure. The network achieves the best accuracy at **60.00%** while already pruning ~69% of gates — the warmup + temperature annealing alone drives significant early sparsity.
+- **Medium λ = 3e-6:** A well-balanced trade-off. Accuracy drops only ~0.85% (to 59.15%) while sparsity jumps to **87.95%** — nearly 9 in 10 weights are pruned with negligible accuracy cost.
+- **High λ = 1e-5:** Aggressive pruning. **97.27%** of gates are zeroed out — the network is nearly fully sparse — at the cost of ~3.5% accuracy (56.53%). The pruning pressure dominates the classification signal in later epochs.
+
+### Best Model Selected: λ = 1e-6
+Selected by the criterion: highest accuracy; if within 0.5%, prefer higher sparsity. λ = 1e-6 leads by >0.5% over λ = 3e-6, so it is chosen.
 
 ---
 
-## 3. Plot Descriptions
+## 3. Plots
 
-### `lambda_tradeoff.png` — Accuracy vs Sparsity Across λ
+### Sparsity vs Accuracy Trade-off Across λ Values
 
-A grouped bar chart with dual y-axes:
-- **Blue bars (left axis):** Test accuracy per λ value.
-- **Orange bars (right axis):** Sparsity level (% of gates below `1e-2`) per λ value.
+![Sparsity vs Accuracy Trade-off](lambda_tradeoff.png)
 
-This plot clearly illustrates the inverse relationship between accuracy and sparsity as λ increases.
+The grouped bar chart clearly shows the inverse relationship: as λ increases, sparsity rises sharply (68.91% → 87.95% → 97.27%) while test accuracy falls gradually (60.00% → 59.15% → 56.53%). This confirms the self-pruning mechanism is working correctly — the λ hyperparameter gives precise control over the compression-accuracy trade-off.
 
-### `best_model_gate_distribution.png` — Gate Distribution for Best Model (λ = `3e-6`)
+---
 
-A histogram of all gate values at the end of training (evaluated at `temperature = 0.5`). A successful run shows:
-- A **large spike near 0** — the majority of gates pruned away.
-- A **secondary cluster away from 0** (near 0.5–1.0) — the surviving, important weights.
-- A **red dashed line** at `threshold = 1e-2` marks the prune boundary.
+### Best Model Gate Value Distribution (λ = 1e-6)
 
-This bimodal distribution is the hallmark of a well-trained self-pruning network.
+![Best Model Gate Distribution](best_model_gate_distribution.png)
+
+The histogram shows a **massive spike at gate value ≈ 0** (over 2.5 million gates pruned, left of the red dashed threshold line at 0.01), with a long tail of surviving weights spread across low positive values. This bimodal-like distribution — a dominant near-zero cluster plus a sparse tail of active weights — is the hallmark of a successfully trained self-pruning network. The red dashed line at `threshold = 0.01` separates pruned from active gates.
 
 ---
 
@@ -103,7 +101,7 @@ Input (32×32×3 = 3072)
 Output (10 class logits)
 ```
 
-Total learnable parameters: weights + biases + gate_scores (doubles the parameter count vs. a standard network).
+Total learnable parameters: weights + biases + gate_scores (doubles the parameter count vs. a standard network during training; at inference, pruned weights can be zeroed/removed).
 
 ### Optimizer Design
 
@@ -124,4 +122,5 @@ This reflects the real-world deployment goal: maximize compression without meani
 - Self-pruning via learnable sigmoid gates is an elegant, end-to-end differentiable approach to network compression.
 - The L1 penalty is the correct choice for inducing exact sparsity — L2 would only shrink weights, not zero them.
 - Temperature annealing is critical: it prevents premature collapse during early training and sharpens gate decisions by the end.
+- Results confirm the method works decisively — **97.27% sparsity** is achievable while retaining **56.53% test accuracy** on CIFAR-10 with a purely feed-forward network.
 - The λ hyperparameter provides a clean, interpretable knob for the accuracy–sparsity trade-off, making deployment decisions straightforward.
