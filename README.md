@@ -74,7 +74,7 @@ Selected by the criterion: highest accuracy; if within 0.5%, prefer higher spars
 
 ### Sparsity vs Accuracy Trade-off Across λ Values
 
-![Sparsity vs Accuracy Trade-off](lambda_tradeoff.png)
+![Sparsity vs Accuracy Trade-off](lambda_tradeoff__4_.png)
 
 The grouped bar chart clearly shows the inverse relationship: as λ increases, sparsity rises sharply (68.91% → 87.95% → 97.27%) while test accuracy falls gradually (60.00% → 59.15% → 56.53%). This confirms the self-pruning mechanism is working correctly — the λ hyperparameter gives precise control over the compression-accuracy trade-off.
 
@@ -82,7 +82,7 @@ The grouped bar chart clearly shows the inverse relationship: as λ increases, s
 
 ### Best Model Gate Value Distribution (λ = 1e-6)
 
-![Best Model Gate Distribution](best_model_gate_distribution.png)
+![Best Model Gate Distribution](best_model_gate_distribution__1_.png)
 
 The histogram shows a **massive spike at gate value ≈ 0** (over 2.5 million gates pruned, left of the red dashed threshold line at 0.01), with a long tail of surviving weights spread across low positive values. This bimodal-like distribution — a dominant near-zero cluster plus a sparse tail of active weights — is the hallmark of a successfully trained self-pruning network. The red dashed line at `threshold = 0.01` separates pruned from active gates.
 
