@@ -1,0 +1,28 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# VS Code settings
+.vscode/
+
+# Generated training outputs (optional but recommended)
+*.png
+*.jpg
+*.jpeg
+
+# Dataset folder (if CIFAR-10 downloads here)
+data/
+
+# Misc
+.DS_Store
+Thumbs.db
